@@ -91,8 +91,7 @@ namespace Ams2.Controllers {
             }
         }
 
-        [HttpPost]
-        [ActionName("Remove")]
+        [HttpPost("Remove")]
         public async Task<ActionResult<JsonResponse>> RemoveProperty( Property property) {
             try {
                 if(property == null)

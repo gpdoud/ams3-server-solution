@@ -154,8 +154,7 @@ namespace Ams2.Controllers {
             }
         }
 
-        [HttpPost]
-        [ActionName("Change")]
+        [HttpPost("Change")]
         public async Task<ActionResult<JsonResponse>> PostVehicle(Vehicle vehicle) {
             try {
                 if(vehicle == null)
@@ -181,8 +180,7 @@ namespace Ams2.Controllers {
             }
         }
 
-        [HttpPost]
-        [ActionName("Remove")]
+        [HttpPost("Remove")]
         public async Task<ActionResult<JsonResponse>> DeleteVehicle(Vehicle vehicle) {
             try {
                 if(vehicle == null)
