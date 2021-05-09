@@ -91,8 +91,8 @@ namespace Ams2.Controllers {
             // 
             if(vehicle.LicensePlate == null || vehicle.LicensePlate == string.Empty)
                 return true;
-            var db1 = new AmsDbContext();
-            var vehicleDb = db1.Vehicles.SingleOrDefault(v => v.LicensePlate == vehicle.LicensePlate);
+            //var db1 = new AmsDbContext();
+            var vehicleDb = db.Vehicles.SingleOrDefault(v => v.LicensePlate == vehicle.LicensePlate);
             // if creating a new vehicle and we find another vehicle with the same
             // LicensePlate, must cause the create to fail
             if(method == CtrlMethod.Create && vehicleDb != null)
@@ -170,7 +170,10 @@ namespace Ams2.Controllers {
                 if(!ModelState.IsValid)
                     return new JsonResponse { Code = -1, Message = "ModelState invalid", Error = ModelState };
                 vehicle.DateUpdated = DateTime.Now;
-                db.Entry(vehicle.Asset).State = EntityState.Modified;
+                var asset = vehicle.Asset;
+                db.Entry(asset).State = EntityState.Modified;
+                await db.SaveChangesAsync();
+                db.Entry(asset).State = EntityState.Detached;
                 db.Entry(vehicle).State = EntityState.Modified;
                 await db.SaveChangesAsync();
                 return new JsonResponse { Message = "Vehicle Changed", Data = vehicle };
