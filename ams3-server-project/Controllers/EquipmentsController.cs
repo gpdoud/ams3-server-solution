@@ -35,7 +35,11 @@ namespace Ams2.Controllers {
 
         [HttpGet("List")]
         public async Task<ActionResult<JsonResponse>> GetEquipment() {
-            return new JsonResponse { Data = await db.Equipments.ToListAsync() };
+            return new JsonResponse { 
+                Data = await db.Equipments
+                                .Include(x => x.Asset)
+                                .ToListAsync() 
+            };
         }
 
         [HttpGet("Get/{id}")]
@@ -43,7 +47,12 @@ namespace Ams2.Controllers {
             try {
                 if(id == null)
                     return new JsonResponse { Code = -2, Message = "Parameter id cannot be null" };
-                var equipment = await db.Equipments.FindAsync(id);
+                var equipment = await db.Equipments
+                                        .Include(x => x.Asset).ThenInclude(x => x.User)
+                                        .Include(x => x.Asset).ThenInclude(x => x.Department)
+                                        .Include(x => x.Asset).ThenInclude(x => x.Category)
+                                        .Include(x => x.Asset).ThenInclude(x => x.Address)
+                                        .SingleOrDefaultAsync(v => v.Id == id);
                 if(equipment == null)
                     return new JsonResponse { Code = -2, Message = $"Equipment id={id} not found" };
                 return new JsonResponse(equipment);
@@ -58,15 +67,11 @@ namespace Ams2.Controllers {
             try {
                 if(equipment == null)
                     return new JsonResponse { Code = -2, Message = "Parameter equipment cannot be null" };
-                if(!ModelState.IsValid)
-                    return new JsonResponse { Code = -1, Message = "ModelState invalid", Error = ModelState };
                 // add the asset first
                 // needs all the asset data entered already
                 var asset = equipment.Asset;
                 db.Assets.Add(asset);
-                var recsAffected = await db.SaveChangesAsync(); // so the asset exists for the equipment
-                if(recsAffected != 1)
-                    return new JsonResponse { Code = -2, Message = "Create asset failed while attempting to add equipment" };
+                await db.SaveChangesAsync(); // so the asset exists for the equipment
                 equipment.AssetId = asset.Id; // this gets the generated PK
                 equipment.DateCreated = DateTime.Now;
                 db.Equipments.Add(equipment);
@@ -91,6 +96,9 @@ namespace Ams2.Controllers {
                 ClearAssetVirtuals(equipment);
                 equipment.DateUpdated = DateTime.Now;
                 db.Entry(equipment.Asset).State = EntityState.Modified;
+                await db.SaveChangesAsync();
+                db.Entry(equipment.Asset).State = EntityState.Detached;
+
                 db.Entry(equipment).State = EntityState.Modified;
                 await db.SaveChangesAsync();
                 return new JsonResponse { Message = "Equipment Changed", Data = equipment };

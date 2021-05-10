@@ -145,6 +145,7 @@ namespace Ams2.Controllers {
                 db.Assets.Add(asset);
                 await db.SaveChangesAsync(); // so the asset exists for the vehicle
                 vehicle.AssetId = asset.Id; // this gets the generated PK
+                vehicle.DateCreated = DateTime.Now;
                 db.Vehicles.Add(vehicle);
                 await db.SaveChangesAsync();
                 return new JsonResponse { Message = "Vehicle Created", Data = vehicle };
@@ -159,21 +160,16 @@ namespace Ams2.Controllers {
             try {
                 if(vehicle == null)
                     return new JsonResponse { Code = -2, Message = "Parameter vehicle cannot be null" };
-                //vehicle.Asset.Address = null;
-                //vehicle.Asset.Department = null;
-                //vehicle.Asset.Category = null;
-                //vehicle.Asset.User = null;
                 if(!AllFieldsAreNullOrUnique(vehicle, CtrlMethod.Edit)) {
                     return new JsonResponse { Code = -2, Message = "ERROR: VIN or LicensePlate is not unique", Error = vehicle };
                 }
                 ClearAssetVirtuals(vehicle);
-                if(!ModelState.IsValid)
-                    return new JsonResponse { Code = -1, Message = "ModelState invalid", Error = ModelState };
                 vehicle.DateUpdated = DateTime.Now;
-                var asset = vehicle.Asset;
-                db.Entry(asset).State = EntityState.Modified;
+                //var asset = vehicle.Asset;
+                db.Entry(vehicle.Asset).State = EntityState.Modified;
                 await db.SaveChangesAsync();
-                db.Entry(asset).State = EntityState.Detached;
+                db.Entry(vehicle.Asset).State = EntityState.Detached;
+                
                 db.Entry(vehicle).State = EntityState.Modified;
                 await db.SaveChangesAsync();
                 return new JsonResponse { Message = "Vehicle Changed", Data = vehicle };
