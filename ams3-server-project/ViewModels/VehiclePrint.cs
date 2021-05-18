@@ -32,6 +32,7 @@ namespace Ams3.ViewModels {
             this.Description = vehicle.Asset.Description;
             this.Cost = vehicle.Asset.Cost;
             this.ResidualValue = vehicle.Asset.ResidualValue;
+            this.AcquiredDate = vehicle.Asset.AcquiredDate;
             this.DisposedDate = vehicle.Asset.DisposedDate;
             this.Department = vehicle.Asset.Department.Name;
         }

@@ -31,7 +31,7 @@ namespace Ams2.Controllers {
             try {
                 if(id == null)
                     return new JsonResponse { Message = "Parameter id cannot be null" };
-                var property = await db.Properties.FindAsync(id);
+                var property = await db.Properties.Include(x => x.Asset).SingleOrDefaultAsync(x => x.Id == id);
                 if(property == null)
                     return new JsonResponse { Message = $"Property id={id} not found" };
                 return new JsonResponse(property);
@@ -52,9 +52,7 @@ namespace Ams2.Controllers {
                 // needs all the asset data entered already
                 var asset = property.Asset;
                 db.Assets.Add(property.Asset);
-                var recsAffected = await db.SaveChangesAsync(); // so the asset exists for the property
-                if(recsAffected != 1)
-                    return new JsonResponse("Create asset failed while attempting to add property");
+                await db.SaveChangesAsync(); // so the asset exists for the property
                 property.AssetId = asset.Id; // this gets the generated PK
                 property.DateCreated = DateTime.Now;
                 db.Properties.Add(property);

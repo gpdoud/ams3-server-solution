@@ -23,9 +23,14 @@ namespace Ams2.Controllers {
         //private AmsDbContext db = new AmsDbContext();
         public EquipmentsController(AmsDbContext context) : base(context) { }
 
-        [HttpGet("ListByDepartment")]
+        [HttpGet("ListByDepartment/{id}")]
         public async Task<ActionResult<JsonResponse>> GetEquipmentsByDepartment(int? id) {
-            var equipments = await db.Equipments.Where(e => e.Asset.DepartmentId == id).ToListAsync();
+            var equipments = await db.Equipments
+                                        .Include(x => x.Asset).ThenInclude(x => x.User)
+                                        .Include(x => x.Asset).ThenInclude(x => x.Department)
+                                        .Include(x => x.Asset).ThenInclude(x => x.Category)
+                                        .Include(x => x.Asset).ThenInclude(x => x.Address)
+                                        .Where(e => e.Asset.DepartmentId == id).ToListAsync();
             var equipmentPrints = new List<EquipmentPrint>();
             foreach(var e in equipments) {
                 equipmentPrints.Add(new EquipmentPrint(e));

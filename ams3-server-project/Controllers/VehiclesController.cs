@@ -32,9 +32,14 @@ namespace Ams2.Controllers {
 
         public VehiclesController(AmsDbContext context) : base(context) { }
 
-        [HttpGet("ListByDepartment")]
+        [HttpGet("ListByDepartment/{id}")]
         public async Task<ActionResult<JsonResponse>> GetVehiclesByDepartment(int? id) {
-            var vehicles = await db.Vehicles.Where(v => v.Asset.DepartmentId == id).ToListAsync();
+            var vehicles = await db.Vehicles
+                                    .Include(x => x.Asset).ThenInclude(x => x.User)
+                                    .Include(x => x.Asset).ThenInclude(x => x.Department)
+                                    .Include(x => x.Asset).ThenInclude(x => x.Category)
+                                    .Include(x => x.Asset).ThenInclude(x => x.Address)
+                                    .Where(v => v.Asset.DepartmentId == id).ToListAsync();
             var vehiclePrints = new List<VehiclePrint>();
             foreach(var v in vehicles) {
                 vehiclePrints.Add(new VehiclePrint(v));
