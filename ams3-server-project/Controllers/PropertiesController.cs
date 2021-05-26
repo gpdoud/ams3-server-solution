@@ -23,7 +23,9 @@ namespace Ams2.Controllers {
 
         [HttpGet("List")]
         public async Task<ActionResult<JsonResponse>> GetProperty() {
-            return new JsonResponse { Data = await db.Properties.ToListAsync() };
+            return new JsonResponse { Data = await db.Properties
+                                        .Include(x => x.Asset)
+                                        .ToListAsync() };
         }
 
         [HttpGet("Get/{id}")]
@@ -31,7 +33,12 @@ namespace Ams2.Controllers {
             try {
                 if(id == null)
                     return new JsonResponse { Message = "Parameter id cannot be null" };
-                var property = await db.Properties.Include(x => x.Asset).SingleOrDefaultAsync(x => x.Id == id);
+                var property = await db.Properties
+                                        .Include(x => x.Asset).ThenInclude(x => x.User)
+                                        .Include(x => x.Asset).ThenInclude(x => x.Department)
+                                        .Include(x => x.Asset).ThenInclude(x => x.Category)
+                                        .Include(x => x.Asset).ThenInclude(x => x.Address)
+                                        .SingleOrDefaultAsync(v => v.Id == id);
                 if(property == null)
                     return new JsonResponse { Message = $"Property id={id} not found" };
                 return new JsonResponse(property);
